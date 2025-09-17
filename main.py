@@ -8,6 +8,7 @@ from llm_providers import get_llm_instance
 
 # 1. Impor tools diperbarui: tool manual diganti nama, tool auditor ditambahkan
 from tools.wireless_breacher import breach_wifi_network as breach_wifi_network_manual
+from tools.contextual_auditor import run_contextual_wifi_audit # Tool baru yang cerdas
 from tools.wireless_auditor import audit_wifi_with_wifite
 from tools.network_mapper import map_lan_devices
 from tools.iot_controller import control_iot_device
@@ -35,7 +36,8 @@ def run():
     # --- LANGKAH 2: Merakit Agent dengan Daftar Tool yang Lengkap ---
     all_tools = [
         breach_wifi_network_manual, # Nama baru yang lebih deskriptif
-        audit_wifi_with_wifite,     # Tool baru ditambahkan
+        audit_wifi_with_wifite,
+        run_contextual_wifi_audit,  # Tool baru yang cerdas
         map_lan_devices,
         control_iot_device,
     ]

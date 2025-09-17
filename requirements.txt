@@ -1,0 +1,11 @@
+# Core LangChain framework
+langchain
+
+# Provider-specific libraries
+langchain-openai
+langchain-google-genai
+langchain-anthropic
+langchain-community # For Ollama
+
+# For loading environment variables from .env file
+python-dotenv

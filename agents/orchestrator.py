@@ -4,14 +4,10 @@ from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 
-# Fungsi ini merakit dan mengembalikan agent yang siap pakai
 def create_aist_agent(tools: list, llm: ChatOpenAI, verbose: bool = True):
     """
-    Build an AIST-IoT Agent using the modern LangChain method.
-    This function assembles and returns a ready-to-use security testing agent for pentesting WiFi networks.
     Membangun AIST-IoT Agent menggunakan metode modern yang direkomendasikan LangChain.
     """ 
-    # --- PROMPT ANDA SUDAH SANGAT BAIK DAN TIDAK PERLU DIUBAH ---
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -34,10 +30,8 @@ Contoh alur pikir:
         ]
     )
 
-    # --- PERUBAHAN UTAMA ADA DI SINI ---
-    # Mengganti seluruh blok konstruksi agent manual yang lama dengan satu fungsi modern.
-    # Fungsi ini secara otomatis dan benar merangkai LLM, tools, dan prompt.
-    agent = create_openai_tools_agent(llm=llm, tools=tools, prompt=prompt)
+    # Menggunakan fungsi factory modern untuk membuat agent
+    agent = create_openai_tools_agent(llm, tools, prompt)
 
-    # AgentExecutor tetap sama, bertugas menjalankan agent yang sudah dibuat.
+    # Membuat AgentExecutor untuk menjalankan agent
     return AgentExecutor(agent=agent, tools=tools, verbose=verbose)

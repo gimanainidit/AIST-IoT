@@ -14,30 +14,24 @@ from tools.network_mapper import map_lan_devices
 from tools.iot_controller import control_iot_device
 from agents.orchestrator import create_aist_agent # Import agent creation function
 
-def run():
-    """Fungsi utama untuk menjalankan AIST-IoT."""
-    load_dotenv()
 
-    # --- LANGKAH 1: Pemilihan Model ---
-    # Defaultnya diubah menjadi gpt-4o-mini untuk pengujian prototipe.
+def run():
+    # ... (kode untuk load_dotenv dan get_llm_instance) ...
     llm_selection = os.getenv("AIST_LLM_PROVIDER", "openai:gpt-4o-mini")
     print(f"🧠 Using LLM: {llm_selection}")
+    llm = get_llm_instance(llm_selection)
 
-    try:
-        llm = get_llm_instance(llm_selection)
-    except (ValueError, ImportError) as e:
-        print(f"Error: Unable to load LLM. {e}")
-        return
-    # --- LANGKAH 2: Merakit Agent dengan Daftar Tool yang Lengkap ---
+
+    # Pastikan daftar 'all_tools' hanya berisi fungsi yang sudah di-decorate dengan @tool
     all_tools = [
-        breach_wifi_network_manual, # Nama baru yang lebih deskriptif
-        audit_wifi_with_wifite,
-        run_contextual_wifi_audit,  # Tool baru yang cerdas
+        breach_wifi_network_manual,
+        run_contextual_wifi_audit,
         map_lan_devices,
         control_iot_device,
     ]
     
-    aist_agent = create_aist_agent(tools=all_tools, llm=llm)
+    # Mengirim 'verbose=True' secara eksplisit
+    aist_agent = create_aist_agent(tools=all_tools, llm=llm, verbose=True)
     
     # --- LANGKAH 3: Menyiapkan Perintah Pengguna (Localization) ---
     # Load localization file based on system locale

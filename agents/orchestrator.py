@@ -1,17 +1,17 @@
 # agents/orchestrator.py
-from langchain.agents import AgentExecutor
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
-from langchain.agents.format_scratchpad.openai_functions import format_to_openai_function_messages
-from langchain.agents.output_parsers.openai_functions import OpenAIFunctionsAgentOutputParser
 
 # Fungsi ini merakit dan mengembalikan agent yang siap pakai
-def create_aist_agent(tools: list, llm):
-    """Membangun AIST-IoT Agent dari tools dan LLM yang diberikan."""
-    
-    llm_with_tools = llm.bind_functions(tools)
-
-    # --- PERUBAHAN PENTING DI SINI ---
+def create_aist_agent(tools: list, llm: ChatOpenAI, verbose: bool = True):
+    """
+    Build an AIST-IoT Agent using the modern LangChain method.
+    This function assembles and returns a ready-to-use security testing agent for pentesting WiFi networks.
+    Membangun AIST-IoT Agent menggunakan metode modern yang direkomendasikan LangChain.
+    """ 
+    # --- PROMPT ANDA SUDAH SANGAT BAIK DAN TIDAK PERLU DIUBAH ---
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -25,7 +25,6 @@ Anda harus berpikir langkah demi langkah dan memilih tool yang paling tepat.
 2.  **Analisis & Serangan Kontekstual:** Setelah Anda mendapatkan daftar jaringan dari langkah pertama, Anda harus menganalisis setiap target yang menarik. Untuk setiap target, panggil tool `run_contextual_wifi_audit`. Anda harus memberikan informasi lengkap tentang jaringan tersebut (ESSID, enkripsi, dll.) ke dalam tool ini.
 3.  **Pelaporan:** Laporkan hasil dari `run_contextual_wifi_audit` untuk setiap target yang diuji.
 
-Jangan gunakan `audit_wifi_with_wifite` sebagai langkah pertama. Tampilkan hasil setiap hasil tindakan Anda dengan jelas.
 Contoh alur pikir:
 'Saya akan panggil `breach_wifi_network_manual` untuk memindai. Hasilnya ada 3 jaringan. Target utama adalah WifiAdit dengan enkripsi WPA2/WPS. Sekarang saya akan panggil `run_contextual_wifi_audit` dengan detail jaringan WifiAdit.'
 """,
@@ -34,15 +33,11 @@ Contoh alur pikir:
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ]
     )
-    # ------------------------------------
-    agent = (
-        {
-            "input": lambda x: x["input"],
-            "agent_scratchpad": lambda x: format_to_openai_function_messages(x["intermediate_steps"]),
-        }
-        | prompt
-        | llm_with_tools
-        | OpenAIFunctionsAgentOutputParser()
-    )
 
-    return AgentExecutor(agent=agent, tools=tools, verbose=True)
+    # --- PERUBAHAN UTAMA ADA DI SINI ---
+    # Mengganti seluruh blok konstruksi agent manual yang lama dengan satu fungsi modern.
+    # Fungsi ini secara otomatis dan benar merangkai LLM, tools, dan prompt.
+    agent = create_openai_tools_agent(llm=llm, tools=tools, prompt=prompt)
+
+    # AgentExecutor tetap sama, bertugas menjalankan agent yang sudah dibuat.
+    return AgentExecutor(agent=agent, tools=tools, verbose=verbose)

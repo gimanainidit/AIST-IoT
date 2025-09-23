@@ -1,3 +1,7 @@
+from langchain.agents import tool
+import time
+
+
 @tool
 def control_iot_device(ip_address: str, vendor: str) -> str:
     """

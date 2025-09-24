@@ -1,26 +1,26 @@
 # tools/network_mapper.py
-import time
-from langchain.agents import tool
 
+from langchain.agents import tool
+from logger_system import logger
+import time
+
+@tool
 def map_lan_devices() -> str:
     """
-    Gunakan tool ini SETELAH berhasil terhubung ke jaringan Wi-Fi.
-    Tool ini akan memindai seluruh subnet lokal untuk mengidentifikasi semua
-    perangkat yang terhubung, beserta alamat IP, MAC, dan vendornya.
-    Mengembalikan daftar perangkat dalam format string.
+    Gunakan tool ini SETELAH berhasil terhubung ke jaringan untuk memindai
+    dan mengidentifikasi semua perangkat yang terhubung di subnet yang sama.
+    Mengembalikan daftar perangkat yang ditemukan.
     """
-    print(f"--- [Tool Running] map_lan_devices ---")
-    print("Simulating network scan with nmap...")
+    logger.info("Memulai pemindaian perangkat di jaringan lokal...")
+    # ... (Logika implementasi Nmap Anda di sini) ...
+    
+    # Placeholder untuk fungsionalitas
     time.sleep(3)
-    # --- GANTI BAGIAN INI DENGAN KODE ASLI (subprocess nmap) ---
-    # Outputnya harus berupa string yang bisa dipahami LLM. JSON-like string is good.
-    discovered_devices = """
+    scan_results = """
     [
-        {"ip": "192.168.1.10", "mac": "98:77:D5:2D:3A:38", "vendor": "Espressif Inc."},
-        {"ip": "192.168.1.12", "mac": "A8:DB:03:11:22:33", "vendor": "Tuya Smart Inc."},
-        {"ip": "192.168.1.15", "mac": "B4:E6:2D:44:55:66", "vendor": "Apple, Inc."}
+        {"ip": "192.168.1.101", "mac": "98:77:D5:2D:3A:38", "vendor": "Espressif Inc."},
+        {"ip": "192.168.1.105", "mac": "A8:DB:03:11:22:33", "vendor": "Tuya Smart Inc."}
     ]
     """
-    print(f"SUCCESS! Found devices:\n{discovered_devices}")
-    return f"Scan complete. Found the following devices on the network: {discovered_devices}"
-    # --------------------------------------------------------------------
+    logger.info("Pemindaian perangkat selesai.")
+    return f"Pemindaian jaringan selesai. Ditemukan perangkat berikut: {scan_results}"

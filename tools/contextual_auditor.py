@@ -2,6 +2,7 @@
 
 import subprocess
 import logging
+from logger_system import logger
 import json
 import os
 from langchain.agents import tool
@@ -44,7 +45,7 @@ def _parse_wifite_cracked_file(essid: str) -> str | None:
 def run_contextual_wifi_audit(network_info: dict, wordlist_path: str) -> str:
     """
     Menganalisis properti jaringan yang terdeteksi dan secara otomatis memilih
-    serta menjalankan metode serangan wifite2 yang paling sesuai (WPS, WPA, WEP).
+    serta menjalankan serangan wifite2 yang paling sesuai.
     Tool ini harus dipanggil setelah pemindaian awal dilakukan.
     Input 'network_info' adalah dictionary yang berisi detail satu jaringan
     dari hasil pemindaian, termasuk 'essid', 'encryption', dll.
@@ -52,7 +53,7 @@ def run_contextual_wifi_audit(network_info: dict, wordlist_path: str) -> str:
     essid = network_info.get("essid")
     encryption_details = network_info.get("encryption", "").upper()
     
-    logger.info(f"--- Starting Contextual Audit for '{essid}' with Encryption: {encryption_details} ---")
+    logger.info(f"Memulai audit kontekstual pada target: {essid}")
     
     # Hapus file cracked.json lama untuk memastikan hasil yang bersih
     if os.path.exists("hs/cracked.json"): os.remove("hs/cracked.json")

@@ -1,2 +1,17 @@
-.env
+# Python
 __pycache__/
+*.pyc
+venv/
+*.egg-info/
+
+# Logs and Outputs
+*.log
+*.cap
+hs/
+
+# Environment
+.env
+
+# IDE specific
+.vscode/
+.idea/

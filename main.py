@@ -1,80 +1,68 @@
-import os
-from dotenv import load_dotenv
-import json
-import locale
-
-# Import factory, not a specific provider
+# main.py
+import sys
+from logger_system import logger
+import config
 from llm_providers import get_llm_instance 
+from agents.orchestrator import create_aist_agent
 
-# 1. Impor tools diperbarui: tool manual diganti nama, tool auditor ditambahkan
-from tools.wireless_breacher import breach_wifi_network as breach_wifi_network_manual
-from tools.contextual_auditor import run_contextual_wifi_audit # Tool baru yang cerdas
-from tools.wireless_auditor import audit_wifi_with_wifite
+# Impor semua tools yang akan digunakan
+from tools.wireless_breacher import breach_wifi_network_manual
+from tools.contextual_auditor import run_contextual_wifi_audit
 from tools.network_mapper import map_lan_devices
 from tools.iot_controller import control_iot_device
-from agents.orchestrator import create_aist_agent # Import agent creation function
 
+def main():
+    """Fungsi utama untuk menjalankan AIST-IoT."""
+    logger.info("==============================================")
+    logger.info("        Memulai AIST-IoT Agent                ")
+    logger.info("==============================================")
 
-def run():
-    # ... (kode untuk load_dotenv dan get_llm_instance) ...
-    llm_selection = os.getenv("AIST_LLM_PROVIDER", "openai:gpt-4o-mini")
-    print(f"🧠 Using LLM: {llm_selection}")
-    llm = get_llm_instance(llm_selection)
+    # 1. Memeriksa Konfigurasi
+    if not config.OPENAI_API_KEY:
+        logger.critical("FATAL ERROR: OPENAI_API_KEY tidak ditemukan. Pastikan sudah diatur di file .env.")
+        sys.exit(1)
 
+    # 2. Menginisialisasi LLM
+    try:
+        # Untuk pengujian, kita hardcode pilihan modelnya
+        llm_selection = "openai:gpt-4o-mini"
+        logger.info(f"Menggunakan LLM: {llm_selection}")
+        llm = get_llm_instance(llm_selection, api_key=config.OPENAI_API_KEY)
+    except Exception as e:
+        logger.critical(f"Gagal memuat LLM: {e}")
+        sys.exit(1)
 
-    # Pastikan daftar 'all_tools' hanya berisi fungsi yang sudah di-decorate dengan @tool
+    # 3. Merakit daftar tools
     all_tools = [
         breach_wifi_network_manual,
         run_contextual_wifi_audit,
         map_lan_devices,
         control_iot_device,
     ]
-    
-    # Mengirim 'verbose=True' secara eksplisit
+    logger.info(f"Tools yang dimuat: {[tool.name for tool in all_tools]}")
+
+    # 4. Membuat Agent
     aist_agent = create_aist_agent(tools=all_tools, llm=llm, verbose=True)
-    
-    # --- LANGKAH 3: Menyiapkan Perintah Pengguna (Localization) ---
-    # Load localization file based on system locale
-    lang_tuple = locale.getlocale()
-    if not lang_tuple or not lang_tuple[0]:
-        lang_tuple = locale.getdefaultlocale()
-    lang = lang_tuple[0] if lang_tuple and lang_tuple[0] else None
-    try:
-        with open(f"locales/{lang_code}.json", "r", encoding="utf-8") as f:
-            messages = json.load(f)
-    except FileNotFoundError:
-        # Fallback to English if locale file not found
+
+    # 5. Memulai loop interaktif dengan user
+    logger.info("Agent siap menerima perintah. Ketik 'exit' untuk keluar.")
+    while True:
         try:
-            with open("locales/en.json", "r", encoding="utf-8") as f:
-                messages = json.load(f)
-        except FileNotFoundError:
-            print("❌ Error: No localization files found. Please ensure at least 'locales/en.json' exists.")
-            return
-        with open("locales/en.json", "r", encoding="utf-8") as f:
-            messages = json.load(f)
+            user_command = input("\nPerintah > ")
+            if user_command.lower() == 'exit':
+                break
+            
+            logger.info(f"Mengeksekusi perintah: {user_command}")
+            result = aist_agent.invoke({"input": user_command})
+            logger.info(f"Hasil akhir dari agent: {result.get('output')}")
 
-    # Dapatkan perintah dari file localization
-    user_command = messages.get(
-        "user_command",
-        "Perform a full security test on the SSID 'WifiAdit' using the wordlist 'rockyou.txt'."
-    )
-    
-    # --- LANGKAH 4: Menjalankan Agent dan Menampilkan Hasil ---
-    result = aist_agent.invoke({"input": user_command})
+        except KeyboardInterrupt:
+            print("\nKeluar dari program.")
+            break
+        except Exception as e:
+            logger.error(f"Terjadi error pada main loop: {e}", exc_info=True)
 
-    # Hasilnya ditampilkan SETELAH agent selesai bekerja
-    print("\n✅ Test run complete. Final Result:")
-    if isinstance(result, dict):
-        print(result.get('output', 'No output received from agent.'))
-    elif result is None:
-        print('No output received from agent (None returned).')
-    else:
-        print(f'Agent returned unexpected result: {result}')
-
-    # Hasilnya ditampilkan SETELAH agent selesai bekerja
-    print("\n✅ Test run complete. Final Result:")
-    print(result.get('output', 'No output received from agent.'))
-
+    logger.info("AIST-IoT Agent dihentikan.")
 
 if __name__ == "__main__":
-    run()
+    main()

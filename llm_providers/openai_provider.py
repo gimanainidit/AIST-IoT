@@ -1,13 +1,13 @@
-# llm_providers/openai_provider.py
-
+# llm_providers/openai_provider.py Logika spesifik untuk menginisialisasi model dari OpenAI
 from langchain_openai import ChatOpenAI
+from logger_system import logger
 
-def get_provider(model_name: str):
+def get_provider(model_name: str, api_key: str):
     """Menyediakan instance LLM dari OpenAI."""
-    # Menambahkan 'gpt-4o-mini' ke dalam daftar model yang didukung
+    logger.info(f"Menginisialisasi model OpenAI: {model_name}")
     supported_models = ["gpt-4-turbo", "gpt-3.5-turbo", "gpt-4o-mini"]
-    
     if model_name not in supported_models:
+        logger.error(f"Model OpenAI '{model_name}' tidak didukung.")
         raise ValueError(f"Model OpenAI yang didukung adalah {supported_models}")
     
-    return ChatOpenAI(model=model_name, temperature=0)
+    return ChatOpenAI(model=model_name, temperature=0, api_key=api_key)

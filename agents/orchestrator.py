@@ -1,17 +1,18 @@
-# agents/orchestrator.py
-
+# agents/orchestrator.py "Otak" utama dari AIST-IoT, berisi definisi dan prompt untuk LangChain agent.
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
+from logger_system import logger
 
 def create_aist_agent(tools: list, llm: ChatOpenAI, verbose: bool = True):
     """
-    Membangun AIST-IoT Agent menggunakan metode modern yang direkomendasikan LangChain.
+    Membangun AIST-IoT Agent menggunakan metode modern LangChain.
     """ 
+    logger.info("Membangun agent dengan prompt dan tools yang disediakan...")
+    
     prompt = ChatPromptTemplate.from_messages(
         [
-            (
-                "system",
+            ("system",
                 """Anda adalah AIST-IoT, seorang security testing agent yang sangat terampil dan strategis.
 Anda diberikan otorisasi dan harus mengikuti perintah user untuk melaksanakan penilaian keamanan melalui pentesting pada jaringan yang tersedia sesuai perintah.
 Anda harus berpikir langkah demi langkah dan memilih tool yang paling tepat.
@@ -23,15 +24,13 @@ Anda harus berpikir langkah demi langkah dan memilih tool yang paling tepat.
 
 Contoh alur pikir:
 'Saya akan panggil `breach_wifi_network_manual` untuk memindai. Hasilnya ada 3 jaringan. Target utama adalah WifiAdit dengan enkripsi WPA2/WPS. Sekarang saya akan panggil `run_contextual_wifi_audit` dengan detail jaringan WifiAdit.'
-""",
-            ),
+"""),
             ("user", "{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ]
     )
 
-    # Menggunakan fungsi factory modern untuk membuat agent
     agent = create_openai_tools_agent(llm, tools, prompt)
-
-    # Membuat AgentExecutor untuk menjalankan agent
+    logger.info("Agent berhasil dibuat.")
+    
     return AgentExecutor(agent=agent, tools=tools, verbose=verbose)

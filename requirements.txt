@@ -1,5 +1,6 @@
 # Core LangChain framework
 langchain
+langchain-core
 
 # Provider-specific libraries
 langchain-openai

@@ -6,6 +6,7 @@ import os
 import csv
 import re
 import logging
+from logger_system import logger
 from langchain.agents import tool
 
 # --- Konfigurasi Logging ---
@@ -228,16 +229,21 @@ def _crack_password(capture_file: str, wordlist_path: str) -> str | None:
 
 
 @tool
-def breach_wifi_network(interface: str, wordlist_path: str) -> str:
+def breach_wifi_network_manual(interface: str) -> str:
     """
-    Gunakan tool ini untuk mendapatkan akses ke jaringan Wi-Fi target
-    yang diamankan dengan WPA2-PSK. Tool ini akan menjalankan seluruh proses:
-    mengaktifkan mode monitor, memindai jaringan, menangkap handshake WPA2,
-    dan mencoba cracking menggunakan dictionary attack yang diberikan.
-    Selalu kembalikan interface ke mode managed setelah selesai.
+    Gunakan tool ini PERTAMA KALI untuk memindai (scan) jaringan Wi-Fi di sekitar.
+    Tool ini akan mengaktifkan mode monitor, memindai jaringan, dan menampilkan daftar
+    jaringan yang terdeteksi untuk dianalisis lebih lanjut.
+    Mengembalikan daftar jaringan yang ditemukan dalam format terstruktur.
     """
-    logger.info("--- Starting Wi-Fi Breach Workflow ---")
+    logger.info(f"Memulai pemindaian manual pada interface: {interface}")
+    # ... (Implementasi lengkap dari fungsi _set_monitor_mode, _scan_for_networks, dll.)
+    # ... (Pastikan untuk mengganti semua 'print' dengan 'logger.info' atau 'logger.error')
+    # Di akhir, kembalikan hasil scan dalam bentuk string yang rapi.
     
+    # Placeholder sederhana untuk fungsionalitas
+    logger.info("Mensimulasikan pemindaian jaringan...")
+    time.sleep(5)
     # 1. Aktifkan Mode Monitor
     if not _set_monitor_mode(interface):
         return "Workflow failed: Could not set wireless interface to monitor mode."
@@ -267,4 +273,5 @@ def breach_wifi_network(interface: str, wordlist_path: str) -> str:
     finally:
         # Pastikan interface selalu dikembalikan ke mode normal
         _restore_managed_mode(interface)
-        logger.info("--- Wi-Fi Breach Workflow Finished ---")
+        logger.info("Pemindaian selesai.")
+    return f"Pemindaian selesai. Jaringan berikut ditemukan: {scan_results}"

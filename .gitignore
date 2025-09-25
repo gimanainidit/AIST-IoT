@@ -9,7 +9,10 @@ venv/
 *.cap
 hs/
 
-# Environment
+# Input data for wordlist generation
+#INPUT/
+
+# Important Environment
 .env
 
 # IDE specific

@@ -5,78 +5,76 @@ import time
 import os
 import csv
 import re
-import logging
 from logger_system import logger
 from langchain.agents import tool
 
-# --- Konfigurasi Logging ---
-# Membuat logger khusus untuk AIST-IoT project
-logger = logging.getLogger('AIST_Logger')
-if not logger.handlers:
-    logger.setLevel(logging.INFO)
-    # Handler untuk menyimpan log ke file
-    file_handler = logging.FileHandler('aist_log.txt')
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    logger.addHandler(file_handler)
-    # Handler untuk menampilkan log di console (opsional, untuk debugging langsung)
-    # console_handler = logging.StreamHandler()
-    # console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    # logger.addHandler(console_handler)
-
+# Fungsi _run_command tetap sama, tidak perlu diubah.
 def _run_command(command: list) -> subprocess.CompletedProcess:
     """Menjalankan command di shell dengan logging."""
     logger.info(f"Executing command: {' '.join(command)}")
     try:
         result = subprocess.run(
-            command,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=120 # Timeout 2 menit untuk mencegah proses macet
+            command, check=True, capture_output=True, text=True, timeout=120
         )
         logger.info(f"Command successful. STDOUT: {result.stdout.strip()}")
         if result.stderr:
             logger.warning(f"Command has STDERR: {result.stderr.strip()}")
         return result
     except subprocess.CalledProcessError as e:
-        logger.error(f"Command failed with exit code {e.returncode}.")
-        logger.error(f"STDOUT: {e.stdout.strip()}")
-        logger.error(f"STDERR: {e.stderr.strip()}")
+        logger.error(f"Command failed with exit code {e.returncode}. STDOUT: {e.stdout.strip()}, STDERR: {e.stderr.strip()}")
         raise
     except subprocess.TimeoutExpired as e:
         logger.error(f"Command timed out: {' '.join(command)}")
         raise
 
-def _set_monitor_mode(interface: str) -> bool:
-    """Mengubah interface ke mode monitor dan memverifikasinya."""
-    logger.info(f"Attempting to set interface '{interface}' to monitor mode.")
+def _set_monitor_mode(interface: str) -> str | None:
+    """
+    Mengubah interface ke mode monitor menggunakan alur airmon-ng.
+    Mengembalikan nama interface monitor baru (misal: 'mon0') jika berhasil.
+    """
+    logger.info(f"Attempting to set interface '{interface}' to monitor mode using airmon-ng.")
     try:
-        # Menggunakan iw untuk mengubah mode (lebih modern dari airmon-ng untuk step ini)
-        _run_command(["sudo", "iw", interface, "set", "type", "monitor"])
-        _run_command(["sudo", "ip", "link", "set", interface, "up"])
+        # 1. Hentikan proses yang dapat mengganggu
+        logger.info("Killing interfering processes using 'airmon-ng check kill'...")
+        _run_command(["sudo", "airmon-ng", "check", "kill"])
         
-        # Verifikasi
-        result = _run_command(["iwconfig", interface])
-        if "Mode:Monitor" in result.stdout:
-            logger.info(f"Successfully set interface '{interface}' to monitor mode.")
-            return True
+        # 2. Mulai mode monitor
+        logger.info(f"Starting monitor mode on '{interface}'...")
+        result = _run_command(["sudo", "airmon-ng", "start", interface])
+        
+        # 3. Cari nama interface monitor baru dari output
+        # Contoh output: (mac80211 monitor mode vif enabled for [phy0]wlan0 on [phy0]mon0)
+        match = re.search(r"monitor mode vif enabled for .* on \[phy\d+\](\w+)", result.stdout)
+        if match:
+            monitor_interface = match.group(1)
+            logger.info(f"Successfully enabled monitor mode. New interface is '{monitor_interface}'.")
+            return monitor_interface
         else:
-            logger.error(f"Failed to verify monitor mode for '{interface}'.")
-            return False
+            # Fallback: Cek dengan iwconfig jika regex gagal
+            logger.warning("Could not parse monitor interface name, verifying with iwconfig.")
+            # Interface name might have 'mon' appended, e.g., wlan0mon
+            if os.path.exists(f"/sys/class/net/{interface}mon"):
+                logger.info(f"Found fallback monitor interface: {interface}mon")
+                return f"{interface}mon"
+            logger.error("Failed to determine new monitor interface name from airmon-ng output.")
+            return None
+            
     except Exception as e:
         logger.error(f"An exception occurred while setting monitor mode: {e}")
-        return False
+        return None
 
-def _restore_managed_mode(interface: str):
-    """Mengembalikan interface ke mode managed setelah selesai."""
-    logger.info(f"Restoring interface '{interface}' to managed mode.")
+def _restore_managed_mode(monitor_interface: str):
+    """Menghentikan interface mode monitor dan merestart service."""
+    if not monitor_interface:
+        return
+    logger.info(f"Restoring system by stopping monitor interface '{monitor_interface}'.")
     try:
-        _run_command(["sudo", "iw", interface, "set", "type", "managed"])
-        _run_command(["sudo", "ip", "link", "set", interface, "up"])
-        logger.info(f"Interface '{interface}' restored to managed mode.")
+        _run_command(["sudo", "airmon-ng", "stop", monitor_interface])
+        logger.info("Attempting to restart NetworkManager...")
+        _run_command(["sudo", "systemctl", "start", "NetworkManager"])
+        logger.info(f"Monitor mode stopped. System services restored.")
     except Exception as e:
-        logger.error(f"Failed to restore managed mode for '{interface}': {e}")
-
+        logger.error(f"Failed to fully restore managed mode for '{monitor_interface}': {e}")
 
 def _scan_for_networks(interface: str, scan_duration: int = 15) -> dict | None:
     """Memindai jaringan sekitar dan meminta user memilih target."""

@@ -10,6 +10,8 @@ from tools.wireless_breacher import breach_wifi_network_manual
 from tools.contextual_auditor import run_contextual_wifi_audit
 from tools.network_mapper import map_lan_devices
 from tools.iot_controller import control_iot_device
+from tools.hidden_network_discoverer import discover_hidden_ssid
+from tools.custom_wordlist_generator import generate_custom_wordlist
 
 def main():
     """Fungsi utama untuk menjalankan AIST-IoT."""
@@ -34,6 +36,8 @@ def main():
 
     # 3. Merakit daftar tools
     all_tools = [
+        generate_custom_wordlist,
+        discover_hidden_ssid,
         breach_wifi_network_manual,
         run_contextual_wifi_audit,
         map_lan_devices,

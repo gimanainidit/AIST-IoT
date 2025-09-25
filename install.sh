@@ -27,7 +27,7 @@ fi
 # 2. Memperbarui sistem dan menginstal dependensi sistem
 print_info "Memperbarui paket sistem dan menginstal dependensi (aircrack-ng, nmap, wifite, dll)..."
 apt-get update
-apt-get install -y git python3-venv aircrack-ng nmap wifite bc build-essential linux-headers-$(uname -r) dkms
+apt-get install -y git python3-venv aircrack-ng nmap wifite bc build-essential linux-headers-$(uname -r) dkms mdk4
 
 # 3. Membuat file .env secara interaktif
 print_info "Menyiapkan file konfigurasi .env..."

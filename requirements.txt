@@ -10,3 +10,8 @@ langchain-community # For Ollama
 
 # For loading environment variables from .env file
 python-dotenv
+
+
+# Libraries for file parsing in wordlist generator
+PyPDF2
+python-docx

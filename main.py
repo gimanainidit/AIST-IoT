@@ -27,7 +27,7 @@ def main():
     # 2. Menginisialisasi LLM
     try:
         # Untuk pengujian, kita hardcode pilihan modelnya
-        llm_selection = "openai:gpt-4o-mini"
+        llm_selection = "openai:gpt-5-nano"
         logger.info(f"Menggunakan LLM: {llm_selection}")
         llm = get_llm_instance(llm_selection, api_key=config.OPENAI_API_KEY)
     except Exception as e:

@@ -10,11 +10,13 @@ venv/
 hs/
 
 # Input data for wordlist generation
-#INPUT/
+app/aist/INPUT
 
 # Important Environment
 .env
 
 # IDE specific
-.vscode/
 .idea/
+.vscode/
+.DS_Store
+

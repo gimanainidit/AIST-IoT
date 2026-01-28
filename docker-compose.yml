@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # 1. Reverse Proxy (Gateway)
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+    networks:
+      - ai_network
+    depends_on:
+      - frontend
+
+  # 2. Frontend Web (Aplikasi Python kamu)
+  frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
+      - VECTOR_DB_URL=http://vector-db:8000
+    networks:
+      - ai_network
+    restart: always
+
+  # 3. Vector Database (ChromaDB)
+  vector-db:
+    image: chromadb/chroma
+    volumes:
+      - ./chroma_data:/chroma/data
+    networks:
+      - ai_network
+    # Port tidak di-expose ke publik, hanya bisa diakses oleh 'frontend'
+
+networks:
+  ai_network:
+    driver: bridge

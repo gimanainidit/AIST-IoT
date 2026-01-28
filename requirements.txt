@@ -15,3 +15,10 @@ python-dotenv
 # Libraries for file parsing in wordlist generator
 PyPDF2
 python-docx
+
+fastapi
+uvicorn
+jinja2
+pydantic
+requests
+python-multipart

@@ -15,17 +15,21 @@ services:
     depends_on:
       - frontend
 
-  # 2. Frontend Web (Aplikasi Python kamu)
+ # 2. Frontend Web (Aplikasi Python kamu)
   frontend:
     build: 
       context: .
       dockerfile: Dockerfile
+    # === TAMBAHKAN DI SINI (BAGIAN START) ===
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb  # Mapping folder USB Host ke Container
+    # === TAMBAHKAN DI SINI (BAGIAN END) ===
     environment:
-      - OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
+      - OPENAI_API_KEY=os.getenv("OPENAI_API_KEY") # Pastikan sintaks ini benar di environment
       - VECTOR_DB_URL=http://vector-db:8000
     networks:
       - ai_network
-    #ports: - "8000:8000" <-- Kalau ini diaktifkan, baru bisa akses localhost:8000
     restart: always
 
   # 3. Vector Database (ChromaDB)
@@ -40,12 +44,3 @@ services:
 networks:
   ai_network:
     driver: bridge
-web:
-    build: .
-    ports:
-      - "8000:8000"
-    # --- IZINKAN AKSES USB ---
-    privileged: true
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb
-    # -------------------------

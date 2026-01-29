@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIST-IoT | Smart Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --primary-color: #2563eb;
+            --text-color: #1f2937;
+            --btn-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .profile-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .profile-header p {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        /* Gaya Tombol Linktree */
+        .link-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-link {
+            background-color: var(--btn-bg);
+            border: 2px solid transparent;
+            padding: 15px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .btn-link:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Loading Overlay (Metakognitif) */
+        #status-overlay {
+            display: none;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Chat Window (Hidden by Default) */
+        #chat-window {
+            display: none;
+            background: white;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="profile-header">
+        <h1>AIST-IoT Control</h1>
+        <p>Agentic-AI Hardware Interface</p>
+    </div>
+
+    <div class="link-container">
+        <button class="btn-link" onclick="connectSensor()">
+            🔌 Connect Sensor / USB Dongle
+        </button>
+
+        <button class="btn-link" onclick="toggleChat()">
+            🤖 Chat with AIST AI
+        </button>
+
+        <button class="btn-link" onclick="exportLog()">
+            📊 Export AI & IoT Log
+        </button>
+    </div>
+
+    <div id="status-overlay">🔄 AI sedang memproses data sensor...</div>
+
+    <div id="chat-window">
+        <input type="text" id="chat-input" placeholder="Tanya AIST...">
+        <button onclick="sendChat()" style="padding: 10px; cursor: pointer;">➡️</button>
+        <div id="chat-response" style="margin-top:10px; font-size: 0.8rem; text-align: left;"></div>
+    </div>
+</div>
+
+<script>
+    // 1. Web Serial API Connection
+    async function connectSensor() {
+        if ("serial" in navigator) {
+            try {
+                const port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+                alert("Sensor Terhubung! Memulai pemantauan...");
+            } catch (err) {
+                alert("Gagal koneksi: " + err);
+            }
+        } else {
+            alert("Browser Anda tidak mendukung Web Serial API. Gunakan Chrome/Edge.");
+        }
+    }
+
+    // 2. Chat Interaction Toggle
+    function toggleChat() {
+        const chatWin = document.getElementById('chat-window');
+        chatWin.style.display = chatWin.style.display === 'block' ? 'none' : 'block';
+    }
+
+    async function sendChat() {
+        const prompt = document.getElementById('chat-input').value;
+        const status = document.getElementById('status-overlay');
+        const responseDiv = document.getElementById('chat-response');
+
+        status.style.display = 'block'; // Tampilkan loading
+        
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ prompt: prompt })
+            });
+            const data = await response.json();
+            responseDiv.innerHTML = `<b>AI:</b> ${data.response}`;
+        } catch (e) {
+            responseDiv.innerHTML = "Gagal menghubungi AI Engine.";
+        } finally {
+            status.style.display = 'none'; // Sembunyikan loading
+        }
+    }
+
+    // 3. Export Log
+    function exportLog() {
+        alert("Menyiapkan file log untuk didownload...");
+        window.location.href = "/export-log";
+    }
+</script>
+
+</body>
+</html>

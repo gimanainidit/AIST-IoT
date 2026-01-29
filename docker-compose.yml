@@ -40,3 +40,12 @@ services:
 networks:
   ai_network:
     driver: bridge
+web:
+    build: .
+    ports:
+      - "8000:8000"
+    # --- IZINKAN AKSES USB ---
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    # -------------------------

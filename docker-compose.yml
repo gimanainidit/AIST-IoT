@@ -5,8 +5,8 @@ services:
   gateway:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80"   # Tambahkan baris ini! Agar bisa diakses via http://localhost
+      - "443:443" # UNTUK NANTI DI VPS
     volumes:
       - ./nginx/conf:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
@@ -25,6 +25,7 @@ services:
       - VECTOR_DB_URL=http://vector-db:8000
     networks:
       - ai_network
+    #ports: - "8000:8000" <-- Kalau ini diaktifkan, baru bisa akses localhost:8000
     restart: always
 
   # 3. Vector Database (ChromaDB)

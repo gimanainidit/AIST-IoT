@@ -18,7 +18,7 @@ app = FastAPI(title="AIST-IoT Agentic Interface")
 # Penting agar browser bisa kirim data sensor via Fetch API tanpa diblokir
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # DI PRODUCTION< GANTI DENGAN DOMAIN ASLI
+    allow_origins=["*"],  # DI PRODUCTION VPS< GANTI DENGAN DOMAIN ASLI
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

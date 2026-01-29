@@ -1,0 +1,37 @@
+name: Deploy AIST-IoT to VPS
+
+# Trigger: Jalan setiap ada push ke branch 'main'
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    # ubuntu-24.04 adalah versi LTS stabil terbaru saat ini. Alternatif: ubuntu-22.04 (jika ingin versi yang lebih lama tapi sangat teruji)
+    runs-on: ubuntu-24.04
+    
+    steps:
+    # Langkah 1: Robot mengambil kodemu
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Langkah 2: Robot masuk ke VPS dan update aplikasi
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VPS_HOST }}        # IP Server (Disimpan rahasia)
+        username: ${{ secrets.VPS_USER }}    # Username
+        key: ${{ secrets.SSH_PRIVATE_KEY }}  # Kunci rahasia SSH
+        script: |
+          # Masuk ke folder project
+          cd /path/ke/project/security/AIST-IoT
+          
+          # Tarik kode terbaru dari GitHub
+          git pull origin main
+          
+          # Update container (Build ulang & Restart)
+          # --build: paksa buat ulang image kalau ada perubahan di Dockerfile
+          docker-compose up -d --build
+          
+          # Bersihkan image sampah (opsional, biar disk gak penuh)
+          docker image prune -f
